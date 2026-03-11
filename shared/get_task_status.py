@@ -1,8 +1,9 @@
 import argparse
 import os
+
 import requests
 from dotenv import load_dotenv
-import sys
+
 
 # Load .env file if present
 load_dotenv()

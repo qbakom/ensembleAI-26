@@ -12,61 +12,83 @@
 module add GCCcore/13.2.0 Python/3.11.5
 source $SCRATCH/venvs/hackathon/bin/activate
 
-cd $SCRATCH/ensembleAI-26/task2/EnsembleAI2026-starter-kit
-
-echo "=== Task 2: Code Context Retrieval ==="
+echo "=== Task 2: Chunk-based Context Collection ==="
 echo "Node: $(hostname)"
 date
 
-# First check if python-dataset.zip needs extracting
-DATA_DIR="$SCRATCH/ensembleAI-26/task2"
-if [ -f "$DATA_DIR/python-dataset.zip" ] && [ ! -d "$DATA_DIR/extracted" ]; then
+# Paths
+REPO_DIR="$SCRATCH/ensembleAI-26"
+TASK2_DIR="$REPO_DIR/task2"
+SOLUTION_DIR="$TASK2_DIR/solution"
+STARTER_DIR="$TASK2_DIR/EnsembleAI2026-starter-kit"
+
+# Install rank_bm25 if not present
+pip install rank_bm25 2>/dev/null
+
+# Check if python-dataset.zip needs extracting
+if [ -f "$TASK2_DIR/python-dataset.zip" ] && [ ! -d "$TASK2_DIR/python-dataset" ]; then
     echo "Extracting python-dataset.zip..."
-    mkdir -p "$DATA_DIR/extracted"
-    cd "$DATA_DIR/extracted"
-    unzip -o "$DATA_DIR/python-dataset.zip"
-    cd $SCRATCH/ensembleAI-26/task2/EnsembleAI2026-starter-kit
+    cd "$TASK2_DIR"
+    unzip -o python-dataset.zip -d python-dataset
 fi
 
-# Determine where archives are
-# They could be in extracted/ or directly in task2/
-if [ -d "$DATA_DIR/extracted" ]; then
-    ARCHIVE_DIR="$DATA_DIR/extracted"
-    # Check if archives are in a subdirectory
-    if ls "$ARCHIVE_DIR"/*.zip 1>/dev/null 2>&1; then
-        echo "Archives found in $ARCHIVE_DIR"
+# Find where the zip archives are
+ARCHIVE_DIR=""
+if [ -d "$TASK2_DIR/python-dataset" ]; then
+    # Check for zips directly or in subdirectory
+    if ls "$TASK2_DIR/python-dataset/"*.zip 1>/dev/null 2>&1; then
+        ARCHIVE_DIR="$TASK2_DIR/python-dataset"
     else
         # Try one level deeper
-        SUBDIR=$(ls -d "$ARCHIVE_DIR"/*/ 2>/dev/null | head -1)
-        if [ -n "$SUBDIR" ]; then
-            ARCHIVE_DIR="$SUBDIR"
-            echo "Archives found in $ARCHIVE_DIR"
-        fi
+        for d in "$TASK2_DIR/python-dataset/"*/; do
+            if ls "$d"*.zip 1>/dev/null 2>&1; then
+                ARCHIVE_DIR="$d"
+                break
+            fi
+        done
     fi
-else
-    ARCHIVE_DIR="$DATA_DIR"
 fi
 
-echo "Using archives from: $ARCHIVE_DIR"
-echo "Input file: $DATA_DIR/python-test.jsonl"
+# Fallback: use starter kit data dir
+if [ -z "$ARCHIVE_DIR" ]; then
+    ARCHIVE_DIR="$STARTER_DIR/data"
+fi
 
-# Run solve_task2.py with test dataset
+echo "Archives directory: $ARCHIVE_DIR"
+echo "Input file: $TASK2_DIR/python-test.jsonl"
+
+# Also check for prepare_data.sh in starter kit
+if [ -d "$STARTER_DIR" ] && [ -f "$STARTER_DIR/prepare_data.sh" ]; then
+    cd "$STARTER_DIR"
+    # Copy test data if needed
+    if [ -f "$TASK2_DIR/python-test.jsonl" ] && [ ! -f "$STARTER_DIR/data/python-public.jsonl" ]; then
+        cp "$TASK2_DIR/python-test.jsonl" "$STARTER_DIR/data/python-public.jsonl"
+    fi
+fi
+
+cd "$SOLUTION_DIR"
+mkdir -p predictions
+
+# Run chunk-based context collection
 python3 -u solve_task2.py \
-    --input "$DATA_DIR/python-test.jsonl" \
+    --input "$TASK2_DIR/python-test.jsonl" \
     --data-dir "$ARCHIVE_DIR" \
-    --output predictions/python-test-smart.jsonl \
+    --output predictions/python-public-smart.jsonl \
+    --max-context-chars 60000 \
+    --max-chunks 30 \
     2>&1
 
-echo "=== Task 2 prediction done ==="
+echo "=== Prediction done ==="
 date
 
-# Submit test predictions
-if [ -f predictions/python-test-smart.jsonl ]; then
-    echo "Submitting test..."
-    cd $SCRATCH/ensembleAI-26
+# Submit with stage=public
+if [ -f predictions/python-public-smart.jsonl ]; then
+    echo "Submitting to server (stage=public)..."
+    cd "$REPO_DIR"
     python3 submit_solution.py task2 \
-        $SCRATCH/ensembleAI-26/task2/EnsembleAI2026-starter-kit/predictions/python-test-smart.jsonl \
-        jsonl_file test
+        "$SOLUTION_DIR/predictions/python-public-smart.jsonl" \
+        jsonl_file public
+    echo "Submitted! Check status in ~20-30 min with get_task_status.py"
 fi
 
 echo "=== Task 2 complete ==="

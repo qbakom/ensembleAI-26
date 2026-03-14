@@ -1,7 +1,7 @@
 """Universal submission script for all tasks."""
 import sys, os, requests
 
-TEAM_TOKEN = os.environ.get("TEAM_TOKEN", "f624a0295f9b4b359395e12a12ca0f2d")
+TEAM_TOKEN = os.environ.get("TEAM_TOKEN", "b2c6083ba78b4039a6db64a4bb5e07ca")
 SERVER_URL = os.environ.get("SERVER_URL", "http://149.156.182.9:6060")
 
 def submit(task, filepath, file_key, stage=None):

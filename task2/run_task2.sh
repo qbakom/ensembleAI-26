@@ -29,14 +29,22 @@ echo "=== Task 2: AST+BM25 pipeline ==="
 echo "Node: $(hostname), Python: $(python3 --version)"
 date
 
-python3 -u solve_task2_ast_bm25.py --stage public --lang python
+SCRATCH=/net/tscratch/people/tutorial243
+INPUT="$SCRATCH/EnsembleAI2026-starter-kit/data/new_public/python-test.jsonl"
+REPOS="$SCRATCH/EnsembleAI2026-starter-kit/data/new_public/repositories-python-public/python-dataset"
+OUTPUT="$SCRATCH/EnsembleAI2026-starter-kit/predictions/python-public-new-ast-bm25.jsonl"
+
+python3 -u solve_task2_ast_bm25.py \
+    --input "$INPUT" \
+    --repos-dir "$REPOS" \
+    --output "$OUTPUT"
 
 echo "=== Generowanie gotowe, wysyłam... ==="
 date
 
 python3 -c "
 import requests
-with open('predictions/python-public-ast-bm25.jsonl', 'rb') as f:
+with open('$OUTPUT', 'rb') as f:
     r = requests.post(
         'http://149.156.182.9:6060/task2',
         files={'jsonl_file': f},

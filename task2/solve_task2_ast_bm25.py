@@ -406,17 +406,24 @@ def main():
     parser.add_argument("--max-chars", type=int, default=MAX_CONTEXT_CHARS,
                         help="Max characters in composed context")
     parser.add_argument("--data-dir", type=str, default="data",
-                        help="Path to data directory")
+                        help="Path to data directory (used to find repos)")
+    parser.add_argument("--input", type=str, default=None,
+                        help="Path to input JSONL file (overrides --data-dir + stage)")
+    parser.add_argument("--repos-dir", type=str, default=None,
+                        help="Path to extracted repos dir (overrides --data-dir)")
+    parser.add_argument("--output", type=str, default=None,
+                        help="Path to output JSONL file")
     args = parser.parse_args()
 
     stage = args.stage
     language = args.lang
     extension = ".py" if language == "python" else ".kt"
 
-    completion_points_file = os.path.join(args.data_dir, f"{language}-{stage}.jsonl")
+    completion_points_file = args.input or os.path.join(args.data_dir, f"{language}-{stage}.jsonl")
+    repos_base = args.repos_dir or os.path.join(args.data_dir, f"repositories-{language}-{stage}")
     predictions_dir = "predictions"
     os.makedirs(predictions_dir, exist_ok=True)
-    predictions_file = os.path.join(predictions_dir, f"{language}-{stage}-ast-bm25.jsonl")
+    predictions_file = args.output or os.path.join(predictions_dir, f"{language}-{stage}-ast-bm25.jsonl")
 
     print(f"AST+BM25 pipeline: {language}-{stage}")
     print(f"  Completion points: {completion_points_file}")
@@ -436,11 +443,7 @@ def main():
     for idx, dp in enumerate(datapoints):
         repo_key = dp["repo"].replace("/", "__")
         repo_revision = dp["revision"]
-        root_dir = os.path.join(
-            args.data_dir,
-            f"repositories-{language}-{stage}",
-            f"{repo_key}-{repo_revision}",
-        )
+        root_dir = os.path.join(repos_base, f"{repo_key}-{repo_revision}")
 
         if not os.path.exists(root_dir):
             print(f"  [{idx+1:3d}] WARN repo not found: {root_dir}")

@@ -41,7 +41,7 @@ pip --no-cache-dir --require-virtualenv install requests python-dotenv 2>&1 | ta
 
 cd "$SCRATCH/hackathon"
 
-export TEAM_TOKEN="f624a0295f9b4b359395e12a12ca0f2d"
+export TEAM_TOKEN="${TEAM_TOKEN:-b2c6083ba78b4039a6db64a4bb5e07ca}"
 export SERVER_URL="http://149.156.182.9:6060"
 
 echo ""

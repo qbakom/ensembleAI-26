@@ -481,7 +481,7 @@ def compose_context(
 # Main Processing
 # ────────────────────────────────────────────────────────────
 
-def process_datapoint(dp: dict, data_dir: str) -> dict:
+def process_datapoint(dp: dict, data_dir: str, max_context_chars: int = 60000) -> dict:
     """Process a single datapoint: extract repo, chunk, rank, compose context."""
     archive_name = dp['archive']
     archive_path = os.path.join(data_dir, archive_name)
@@ -535,7 +535,7 @@ def process_datapoint(dp: dict, data_dir: str) -> dict:
         scored = score_chunks(all_chunks, prefix, suffix, target_path, modified)
 
         # Compose context
-        context = compose_context(scored, max_chars=MAX_CONTEXT_CHARS)
+        context = compose_context(scored, max_chars=max_context_chars)
 
         return {"context": context}
 
@@ -560,9 +560,8 @@ def main():
                        help="Maximum number of chunks to include")
     args = parser.parse_args()
 
-    global MAX_CONTEXT_CHARS, MAX_CHUNKS
-    MAX_CONTEXT_CHARS = args.max_context_chars
-    MAX_CHUNKS = args.max_chunks
+    max_context_chars = args.max_context_chars
+    max_chunks = args.max_chunks
 
     os.makedirs(os.path.dirname(args.output) or '.', exist_ok=True)
 
@@ -572,12 +571,12 @@ def main():
     print(f"Task 2: Chunk-based Context Collection Pipeline")
     print(f"Input: {args.input} ({len(datapoints)} datapoints)")
     print(f"Data dir: {args.data_dir}")
-    print(f"Max context: {MAX_CONTEXT_CHARS} chars, Max chunks: {MAX_CHUNKS}")
+    print(f"Max context: {max_context_chars} chars, Max chunks: {max_chunks}")
     print()
 
     results = []
     for idx, dp in enumerate(datapoints):
-        result = process_datapoint(dp, args.data_dir)
+        result = process_datapoint(dp, args.data_dir, max_context_chars=max_context_chars)
         results.append(result)
 
         ctx_len = len(result.get('context', ''))

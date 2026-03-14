@@ -7,7 +7,7 @@ import paramiko, os, sys, time
 HOST = "athena.cyfronet.pl"
 USER = "tutorial243"
 PASS = "pybtujumra"
-TEAM_TOKEN = "f624a0295f9b4b359395e12a12ca0f2d"
+TEAM_TOKEN = "b2c6083ba78b4039a6db64a4bb5e07ca"
 SERVER_URL = "http://149.156.182.9:6060"
 
 LOCAL_PACKAGE = "/srv/root/ensembleAI-26/athena_package"

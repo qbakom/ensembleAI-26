@@ -212,3 +212,8 @@ task3/ensemble_task_3_data_oct24-oct25.tar.gz
 task3/Task 4 public/
 task1/*.parquet
 athena_package/
+task3/data/
+task3/data.tar.gz
+task4/data/
+*.pkl
+*.rar

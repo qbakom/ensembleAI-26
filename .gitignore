@@ -205,3 +205,10 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Large data files
+task2/EnsembleAI2026-starter-kit/
+task3/ensemble_task_3_data_oct24-oct25.tar.gz
+task3/Task 4 public/
+task1/*.parquet
+athena_package/

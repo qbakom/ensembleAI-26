@@ -18,7 +18,7 @@ echo "=== Task 1: ChEBI Classification ==="
 echo "Node: $(hostname), CPUs: $SLURM_NTASKS_PER_NODE"
 date
 
-python3 -u solve_task1_v6.py 2>&1
+python3 -u solve_task1_v7.py --n-jobs 16 2>&1
 
 echo "=== Task 1 done ==="
 date
